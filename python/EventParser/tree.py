@@ -47,37 +47,36 @@ class EventTree:
             c._build_graphviz(G)
         
 
-def make_tree_from_wiki(f):
-    pagetext = ''
+def make_tree_from_wiki(f, prune_wiki=False):
 
-    for line in f.readlines():
-        pagetext += line
+    pagetext = "".join(f.readlines())
 
     parsed_html = BeautifulSoup(pagetext)
     toctable = parsed_html.find('div', attrs={'id':'toc'}).find('ul')
     first_child, last_child = _recover_section_text(parsed_html)
-    _recover_wiki_tree(toctable, parsed_html, last_child)
+    _recover_wiki_tree(toctable, parsed_html, last_child, prune_wiki=prune_wiki)
     return first_child
 
-def _recover_wiki_tree(el, soup, root=EventTree()):
+def _recover_wiki_tree(el, soup, root=EventTree(), prune_wiki=False):
     if not el:
         return
       
     for li in el.findAll('li', recursive=False):
-
         toctext = li.find('span', attrs={'class':'toctext'}).text
-        sublist = li.find('ul')
-        node = EventTree(nodeval=toctext) 
+        if not prune_wiki or toctext not in ['See also', 'References', 'External links']:
 
-        safe_text = toctext.replace(' ', '_') 
-        first_child, last_child = _recover_section_text(soup, safe_text)
-        if first_child:
-            node.add_child(first_child)
-            _recover_wiki_tree(sublist, soup, last_child)
-        else:
-            _recover_wiki_tree(sublist, soup, node)
-        
-        root.add_child(node)
+            sublist = li.find('ul')
+            node = EventTree(nodeval=toctext) 
+
+            safe_text = toctext.replace(' ', '_') 
+            first_child, last_child = _recover_section_text(soup, safe_text)
+            if first_child:
+                node.add_child(first_child)
+                _recover_wiki_tree(sublist, soup, last_child)
+            else:
+                _recover_wiki_tree(sublist, soup, node)
+            
+            root.add_child(node)
             
     return root 
 
