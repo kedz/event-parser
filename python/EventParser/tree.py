@@ -48,6 +48,16 @@ class EventTree:
         
 
 def make_tree_from_wiki(f, prune_wiki=False):
+    """
+    Creates an EventTree from Wikipedia page html fragment.
+
+    Parameters
+    ----------
+    f - a file handle to the html fragment
+    prune_wiki - When True, generic sections are not included.
+                 Rmeoved sections are: 'See also', 'References', 
+                 and 'External links'.
+    """
 
     pagetext = "".join(f.readlines())
 
